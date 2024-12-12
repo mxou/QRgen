@@ -2,16 +2,25 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
+    <!-- Couleur de fond de l'écran de lancement -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="QRgenerea" />
+
+    <!-- Icône pour l'écran d'accueil -->
+    <link rel="apple-touch-icon" href="icon-192x192.png" />
     <title>QRgen</title>
     <link rel="stylesheet" href="./assets/style.css" />
+    <link rel="manifest" href="manifest.json" />
   </head>
   <body>
-    <h1>QRgenerea</h1>
+    <h1>QRgen</h1>
     <input type="url" id="url" placeholder="Entrez une URL" required /><br />
     <input type="text" id="name" placeholder="Nom du QR Code" required /><br />
     <button onclick="generateQRCode()">Générer le QR Code</button>
     <div id="qrcode"></div>
     <button id="downloadBtn" style="display: none" onclick="downloadQRCode()">Télécharger le QR Code</button>
+    <button id="installBtn" style="display: none"><img src="./assets/img/download.svg" alt="Icon download" /></button>
 
     <script src="./assets/qrcode.min.js"></script>
     <script>
@@ -56,6 +65,47 @@
         // Déclenche le téléchargement
         downloadLink.click();
       }
+
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/service-worker.js")
+            .then((registration) => {
+              console.log("Service Worker enregistré avec succès :", registration.scope);
+            })
+            .catch((err) => {
+              console.log("Échec de l'enregistrement du Service Worker :", err);
+            });
+        });
+      }
+
+      let deferredPrompt; // Stocke l'événement beforeinstallprompt
+
+      const installBtn = document.getElementById("installBtn");
+
+      // Écoute l'événement beforeinstallprompt pour afficher le bouton d'installation
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault(); // Empêche le déclenchement automatique de l'invite d'installation
+        deferredPrompt = e; // Stocke l'événement pour l'utiliser plus tard
+        installBtn.style.display = "grid"; // Affiche le bouton d'installation
+      });
+
+      // Gère le clic sur le bouton d'installation
+      installBtn.addEventListener("click", async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt(); // Affiche l'invite d'installation du navigateur
+
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === "accepted") {
+            console.log("L'utilisateur a accepté l'installation");
+          } else {
+            console.log("L'utilisateur a refusé l'installation");
+          }
+
+          deferredPrompt = null; // Réinitialise l'événement
+          installBtn.style.display = "none"; // Cache le bouton après l'installation
+        }
+      });
     </script>
   </body>
 </html>
