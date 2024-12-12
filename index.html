@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>QRgen</title>
+    <link rel="stylesheet" href="./assets/style.css" />
+  </head>
+  <body>
+    <h1>QRgenerea</h1>
+    <input type="url" id="url" placeholder="Entrez une URL" required /><br />
+    <input type="text" id="name" placeholder="Nom du QR Code" required /><br />
+    <button onclick="generateQRCode()">Générer le QR Code</button>
+    <div id="qrcode"></div>
+    <button id="downloadBtn" style="display: none" onclick="downloadQRCode()">Télécharger le QR Code</button>
+
+    <script src="./assets/qrcode.min.js"></script>
+    <script>
+      let qrCode; // Variable pour stocker l'instance QRCode
+
+      function generateQRCode() {
+        const url = document.getElementById("url").value;
+        const name = document.getElementById("name").value;
+
+        if (!url || !name) {
+          alert("Il faut remplir les deux champs.");
+          return;
+        }
+
+        // Efface le QR code précédent s'il existe
+        const qrContainer = document.getElementById("qrcode");
+        qrContainer.innerHTML = "";
+
+        // Crée une nouvelle instance QRCode
+        qrCode = new QRCode(qrContainer, {
+          text: url,
+          width: 200,
+          height: 200,
+        });
+
+        // Affiche le bouton de téléchargement
+        document.getElementById("downloadBtn").style.display = "inline-block";
+      }
+
+      function downloadQRCode() {
+        const name = document.getElementById("name").value;
+        const qrCanvas = document.querySelector("#qrcode canvas");
+
+        // Convertit le QR code en image PNG
+        const imageURL = qrCanvas.toDataURL("image/png");
+
+        // Crée un lien de téléchargement
+        const downloadLink = document.createElement("a");
+        downloadLink.href = imageURL;
+        downloadLink.download = name + ".png";
+
+        // Déclenche le téléchargement
+        downloadLink.click();
+      }
+    </script>
+  </body>
+</html>
